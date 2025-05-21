@@ -1,11 +1,11 @@
 import express from "express"
-import { addSubject, deleteSubject, editSubject, showAllSubjects } from "../Controller/subjectController.js"
+import { addSubject, deleteStudentSubject, getSubjectsForClass, updateStudentSubjects } from "../Controller/subjectController.js"
 
 const subjectRoute = express.Router()
 
-subjectRoute.post("/add", addSubject)
-subjectRoute.delete("/delete", deleteSubject)
-subjectRoute.get("/showAllSubjects", showAllSubjects)
-subjectRoute.get("/edit", editSubject)
+subjectRoute.post("/:classId/subjects", addSubject);
+subjectRoute.get("/:classId/subjects", getSubjectsForClass);
+subjectRoute.put("/:studentId/subjects", updateStudentSubjects);
+subjectRoute.delete("/:studentId/delete", deleteStudentSubject)
 
 export default subjectRoute

@@ -1,7 +1,8 @@
 import { handleError } from "../Helpers/handleError.js";
 import studentModel from "../Models/studentModel.js";
-import userModel from "../Models/userModel.js";
 import bcryptjs from "bcryptjs";
+import jwt from "jsonwebtoken";
+
 
 
 //new student will be addded by teacher in database
@@ -38,14 +39,14 @@ export const Register = async (req, res, next) => {
     if (!student) {
       return next(handleError(404, "Invalid student ID."));
     }
-
-    if (student.email) {
+    if (student.password) {
       return next(handleError(400, "Student already registered."));
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    student.password = hashedPassword;
 
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    student.password = hashedPassword;
+    student.email = email
     await student.save();
 
     res.status(200).json({
@@ -67,7 +68,7 @@ export const login = async (req, res, next) => {
     if (!student.password)
       return next(handleError(401, "Student not yet registered."));
 
-    const isMatch = await bcrypt.compare(password, student.password);
+    const isMatch = await bcryptjs.compare(password, student.password);
     if (!isMatch) return next(handleError(401, "Invalid credentials."));
 
     const token = jwt.sign(
@@ -92,6 +93,7 @@ export const login = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      token: token,
       student: studentData,
       message: "Login successful.",
     });

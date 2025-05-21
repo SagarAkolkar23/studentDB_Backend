@@ -1,8 +1,10 @@
 import express from "express";
 import Student from "../Models/studentModel.js";
 import { handleError } from "../Helpers/handleError.js";
+import classModel from "../Models/classModel.js";
+import userModel from "../Models/userModel.js";
+import mongoose from "mongoose";
 
-import bcrypt from "bcryptjs";
 
 
 export const editStudent = async (req, res, next) => {
@@ -85,3 +87,37 @@ export const getStudentsByClassAndTeacher = async (req, res, next) => {
   }
 };
 
+export const getStudentDashboard = async (req, res, next) => {
+  try {
+    const { studentid } = req.params;
+    console.log("studentid param:", studentid);
+
+    if (!mongoose.Types.ObjectId.isValid(studentid)) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid student id format" });
+    }
+
+    const studentData = await Student.findById(studentid)
+      .populate({
+        path: "teacherId",
+        select: "name email number school role",
+        model: userModel,
+      })
+      .populate({ path: "classId", select: "name section", model: classModel })
+      .lean();
+
+    console.log("Student data found:", studentData);
+
+    if (!studentData) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Student not found" });
+    }
+
+    res.status(200).json({ success: true, student: studentData });
+  } catch (error) {
+    console.error("Error fetching student dashboard data:", error);
+    return next(handleError(500, error.message));
+  }
+};
